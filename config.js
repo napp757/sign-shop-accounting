@@ -2,5 +2,5 @@
 // Data is protected by login + Row Level Security in Supabase, not by hiding these.
 window.APP_CONFIG = {
   supabaseUrl: "https://nswnfkijuxkwrckfrqup.supabase.co",
-  supabaseKey: "ใส่ publishable key ที่นี่"
+  supabaseKey: "sb_publishable_4o4v-y2CdOVyeFIUh9lzTw_SNSJOux6"
 };
