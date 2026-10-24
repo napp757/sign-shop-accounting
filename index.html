@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>บัญชีร้านป้าย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mitr:wght@500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+/* Layout: a yellow "signboard" header, one column of working cards, bottom tab bar for thumbs */
+:root{
+  --bg:#f3f4f7; --surface:#ffffff; --fg:#16203a; --muted:#5b6580; --line:#dde1ea;
+  --accent:#1f3d8f; --accent-fg:#ffffff; --signal:#f4c20d; --signal-fg:#16203a;
+  --good:#1b7a48; --good-bg:#e3f3ea; --bad:#b8322a; --bad-bg:#fbe9e7; --warn-bg:#fdf3d3;
+  --display:"Mitr","IBM Plex Sans Thai",system-ui,sans-serif;
+  --body:"IBM Plex Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1320; --surface:#172034; --fg:#e8ecf5; --muted:#98a2bb; --line:#2a3550;
+  --accent:#8fb0ff; --accent-fg:#0e1320; --signal:#f2c230; --signal-fg:#16203a;
+  --good:#5cc98a; --good-bg:#183a2a; --bad:#ff8a7c; --bad-bg:#40201e; --warn-bg:#3a3218; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1320; --surface:#172034; --fg:#e8ecf5; --muted:#98a2bb; --line:#2a3550;
+  --accent:#8fb0ff; --accent-fg:#0e1320; --signal:#f2c230; --signal-fg:#16203a;
+  --good:#5cc98a; --good-bg:#183a2a; --bad:#ff8a7c; --bad-bg:#40201e; --warn-bg:#3a3218; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--signal)}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:720px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.board{background:var(--signal);color:var(--signal-fg);position:sticky;top:env(safe-area-inset-top,0px);z-index:5;border-bottom:3px solid var(--signal-fg)}
+header.board .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+header.board h1{font-family:var(--display);font-weight:600;font-size:1.35rem;margin:0;letter-spacing:.01em}
+.monthbar{display:flex;align-items:center;gap:4px}
+.monthbar span{font-weight:600;min-width:7.5em;text-align:center;font-size:.92rem}
+.iconbtn{border:0;background:transparent;color:inherit;font:inherit;font-size:1.2rem;width:36px;height:36px;border-radius:50%;cursor:pointer}
+.iconbtn:hover{background:rgba(0,0,0,.08)}
+main.wrap{padding-block:16px 110px;display:flex;flex-direction:column;gap:16px}
+.banner{background:var(--warn-bg);border-radius:var(--r);padding:10px 14px;font-size:.9rem}
+.section-title{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.section-title h2{font-family:var(--display);font-weight:500;font-size:1.1rem;margin:0}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;min-width:0}
+.kpi .label{font-size:.8rem;color:var(--muted)}
+.kpi .val{font-size:1.15rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.owe-total{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--bad);border-radius:var(--r);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.owe-total .val{font-size:1.5rem;font-weight:600;color:var(--bad)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{font:inherit;font-weight:600;border-radius:var(--r);padding:12px 14px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;min-height:46px}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.danger{color:var(--bad)}
+.btn.danger.armed{background:var(--bad);color:#fff;border-color:var(--bad)}
+.btn.sm{padding:6px 12px;min-height:36px;font-size:.9rem}
+.btn:focus-visible,.iconbtn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.card:focus-visible,.chip:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.list{display:flex;flex-direction:column;gap:8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;justify-content:space-between;gap:12px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.card:hover{border-color:var(--accent)}
+.card .main{min-width:0;flex:1}
+.card .title{font-weight:600;overflow-wrap:anywhere}
+.card .sub{font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
+.card .right{text-align:right;flex-shrink:0}
+.pill{display:inline-block;border-radius:999px;padding:1px 10px;font-size:.8rem;font-weight:600}
+.pill.owe{background:var(--bad-bg);color:var(--bad)}
+.pill.paid{background:var(--good-bg);color:var(--good)}
+.pill.done{background:var(--line);color:var(--muted)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:6px 14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.empty{border:2px dashed var(--line);border-radius:var(--r);padding:24px 16px;text-align:center;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%;min-width:0}
+textarea{min-height:60px;resize:vertical}
+label{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--muted);min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form{display:flex;flex-direction:column;gap:12px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);z-index:6;padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs .in{max-width:720px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs button{font:inherit;font-size:.82rem;border:0;background:transparent;color:var(--muted);padding:8px 4px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+nav.tabs button .ic{font-size:1.25rem;line-height:1}
+nav.tabs button[aria-current="page"]{color:var(--accent);font-weight:600}
+dialog{border:0;padding:0;border-radius:14px;background:var(--surface);color:var(--fg);width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 32px)}
+dialog::backdrop{background:rgba(10,15,30,.55)}
+.dlg{display:flex;flex-direction:column;max-height:calc(100dvh - 32px)}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.dlg-head h3{margin:0;font-family:var(--display);font-weight:500;font-size:1.1rem;overflow-wrap:anywhere}
+.dlg-body{padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--bg);border-radius:8px;padding:8px 10px;min-width:0}
+.stat .label{font-size:.78rem;color:var(--muted)}
+.stat .val{font-weight:600}
+.rows{display:flex;flex-direction:column}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .l{min-width:0;overflow-wrap:anywhere}
+.row .r{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.x{border:0;background:transparent;color:var(--muted);font:inherit;cursor:pointer;padding:4px 8px;border-radius:6px}
+.x.armed{background:var(--bad);color:#fff}
+.inline-add{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+.inline-add.three{grid-template-columns:1.4fr 1fr auto}
+.subhead{font-weight:600;display:flex;justify-content:space-between;align-items:baseline}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+table{width:100%;border-collapse:collapse}
+td,th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:.8rem;color:var(--muted);font-weight:500}
+td.r,th.r{text-align:right;white-space:nowrap}
+tr.total td{font-weight:600;border-bottom:0}
+.tablewrap{overflow-x:auto}
+.bars{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;align-items:end;height:150px;padding-top:8px}
+.bar{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;min-width:0}
+.bar .pair{display:flex;gap:3px;align-items:flex-end;height:100%;width:100%;justify-content:center}
+.bar .in{background:var(--good);width:40%;border-radius:3px 3px 0 0;min-height:2px}
+.bar .out{background:var(--bad);width:40%;border-radius:3px 3px 0 0;min-height:2px;opacity:.75}
+.bar .m{font-size:.75rem;color:var(--muted)}
+.bar.sel .m{color:var(--fg);font-weight:600}
+.legend{display:flex;gap:14px;font-size:.8rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.good{color:var(--good)} .bad{color:var(--bad)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.9rem;z-index:20;max-width:calc(100vw - 32px)}
+@media (max-width:420px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .kpis .kpi:last-child{grid-column:span 2}
+  .stats{grid-template-columns:1fr 1fr}
+  .inline-add,.inline-add.three{grid-template-columns:1fr 1fr}
+  .inline-add .btn{grid-column:span 2}
+  header.board h1{font-size:1.15rem}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+html{padding-top:env(safe-area-inset-top,0px)}
+.login{max-width:380px;margin:12vh auto 0;display:flex;flex-direction:column;gap:14px}
+.login h2{font-family:var(--display);font-weight:500;margin:0}
+</style>
+</head>
+<body>
+
+<header class="board">
+  <div class="wrap">
+    <h1>บัญชีร้านป้าย</h1>
+    <div class="monthbar" id="monthbar">
+      <button class="iconbtn" data-act="month" data-d="-1" aria-label="เดือนก่อน">‹</button>
+      <span id="monthLabel" class="num"></span>
+      <button class="iconbtn" data-act="month" data-d="1" aria-label="เดือนถัดไป">›</button>
+      <button class="iconbtn" data-act="logout" aria-label="ออกจากระบบ" title="ออกจากระบบ" id="logoutBtn" hidden style="font-size:.8rem;width:auto;padding:0 8px">ออก</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="view"></main>
+
+<nav class="tabs" aria-label="เมนูหลัก">
+  <div class="in">
+    <button data-act="tab" data-tab="home"><span class="ic">◧</span>ภาพรวม</button>
+    <button data-act="tab" data-tab="jobs"><span class="ic">▤</span>งาน</button>
+    <button data-act="tab" data-tab="expenses"><span class="ic">⇣</span>รายจ่ายร้าน</button>
+    <button data-act="tab" data-tab="summary"><span class="ic">▥</span>สรุปเดือน</button>
+  </div>
+</nav>
+
+<dialog id="dlg"><div class="dlg" id="dlgInner"></div></dialog>
+<div id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+const SIGN_TYPES=["ไวนิล","สติ๊กเกอร์","อะคริลิก","ป้ายไฟ / กล่องไฟ","ตัวอักษรนูน","ป้ายเหล็ก / โครงสร้าง","งานพิมพ์อื่นๆ","อื่นๆ"];
+const COST_ITEMS=["ไวนิล","สติ๊กเกอร์","หมึก","อะคริลิก","เหล็ก / โครง","ไฟ LED","ค่าแรงติดตั้ง","ค่าขนส่ง"];
+const EXP_CATS=["ค่าเช่า","ค่าไฟ / น้ำ","เงินเดือน / ค่าแรง","ซ่อมเครื่อง / บำรุงรักษา","วัสดุสิ้นเปลือง","ค่าน้ำมัน / เดินทาง","อื่นๆ"];
+const PAY_METHODS=["เงินสด","โอน"];
+
+const state={jobs:{},expenses:{},tab:"home",month:"",jobFilter:"owe",q:"",openJob:null,readOnly:false,live:false,session:null,booting:true};
+let sb=null;
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money=n=>"฿"+Math.round(Number(n)||0).toLocaleString("th-TH");
+const localISO=(d=new Date())=>new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+const thDate=s=>s?new Date(s+"T00:00").toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"2-digit"}):"";
+const thMonth=(ym,short)=>new Date(ym+"-01T00:00").toLocaleDateString("th-TH",short?{month:"short"}:{month:"long",year:"numeric"});
+const shiftMonth=(ym,d)=>{const[y,m]=ym.split("-").map(Number);const t=new Date(y,m-1+d,1);return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")};
+const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const sum=(a,f)=>a.reduce((s,x)=>s+(Number(f(x))||0),0);
+const paidOf=j=>sum(j.payments||[],p=>p.amount);
+const costOf=j=>sum(j.costs||[],c=>c.amount);
+const remainOf=j=>Math.max(0,(Number(j.price)||0)-paidOf(j));
+const jobsArr=()=>Object.values(state.jobs);
+state.month=localISO().slice(0,7);
+
+function toast(msg){const t=$("#toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2600)}
+
+// ---------- storage (Supabase) ----------
+const TABLE={jobs:"jobs",expenses:"expenses"};
+async function upsert(table,item){
+  const{id,...data}=item;
+  const{error}=await sb.from(table).upsert({id,data,updated_at:new Date().toISOString()});
+  if(error)writeFail(error);
+}
+async function remove(table,id){
+  const{error}=await sb.from(table).delete().eq("id",id);
+  if(error)writeFail(error);
+}
+const saveJob=j=>{state.jobs[j.id]=j;render();return upsert("jobs",j)};
+const deleteJob=id=>{delete state.jobs[id];render();return remove("jobs",id)};
+const saveExpense=x=>{state.expenses[x.id]=x;render();return upsert("expenses",x)};
+const deleteExpense=id=>{delete state.expenses[id];render();return remove("expenses",id)};
+function writeFail(e){
+  console.error(e);
+  if(e&&(e.code==="42501"||/row-level security|permission/i.test(e.message||""))){state.readOnly=true;toast("บัญชีนี้ไม่มีสิทธิ์บันทึกข้อมูล")}
+  else toast("บันทึกไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่");
+  loadAll();
+}
+async function loadAll(){
+  if(!sb||!state.session)return;
+  const[j,x]=await Promise.all([sb.from("jobs").select("id,data"),sb.from("expenses").select("id,data")]);
+  if(j.error||x.error){state.live=false;render();return}
+  state.live=true;
+  state.jobs=Object.fromEntries(j.data.map(r=>[r.id,{id:r.id,...r.data}]));
+  state.expenses=Object.fromEntries(x.data.map(r=>[r.id,{id:r.id,...r.data}]));
+  render();
+}
+
+// ---------- calculations ----------
+function monthNumbers(ym){
+  const jobs=jobsArr();
+  const income=sum(jobs,j=>sum((j.payments||[]).filter(p=>(p.date||"").startsWith(ym)),p=>p.amount));
+  const jobCost=sum(jobs,j=>sum((j.costs||[]).filter(c=>(c.date||"").startsWith(ym)),c=>c.amount));
+  const exps=Object.values(state.expenses).filter(x=>(x.date||"").startsWith(ym));
+  const shop=sum(exps,x=>x.amount);
+  return{income,jobCost,shop,out:jobCost+shop,profit:income-jobCost-shop,exps};
+}
+const owingJobs=()=>jobsArr().filter(j=>remainOf(j)>0).sort((a,b)=>(a.createdAt||"").localeCompare(b.createdAt||""));
+
+// ---------- views ----------
+function jobCard(j){
+  const rem=remainOf(j);
+  const pill=rem>0?`<span class="pill owe">ค้าง ${money(rem)}</span>`:j.status==="done"?`<span class="pill done">ปิดงานแล้ว</span>`:`<span class="pill paid">จ่ายครบ</span>`;
+  const due=j.dueDate&&j.status!=="done"?` · ส่ง ${thDate(j.dueDate)}`:"";
+  return `<button class="card" data-act="openJob" data-id="${esc(j.id)}">
+    <div class="main"><div class="title">${esc(j.customer)}</div>
+      <div class="sub">${esc(j.title||j.type||"")}${due}</div></div>
+    <div class="right"><div class="num" style="font-weight:600">${money(j.price)}</div>${pill}</div></button>`;
+}
+function emptyBox(msg,btn){return `<div class="empty">${msg}${btn&&!state.readOnly?`<div style="margin-top:12px">${btn}</div>`:""}</div>`}
+
+function viewHome(){
+  const m=monthNumbers(state.month);
+  const owing=owingJobs();
+  const oweTotal=sum(owing,remainOf);
+  const active=jobsArr().filter(j=>j.status!=="done").sort((a,b)=>(a.dueDate||"9").localeCompare(b.dueDate||"9"));
+  return `
+  ${banner()}
+  <div class="kpis">
+    <div class="kpi"><div class="label">รับเงิน ${thMonth(state.month,1)}</div><div class="val num good">${money(m.income)}</div></div>
+    <div class="kpi"><div class="label">จ่ายออก</div><div class="val num bad">${money(m.out)}</div></div>
+    <div class="kpi"><div class="label">กำไร</div><div class="val num ${m.profit<0?"bad":""}">${money(m.profit)}</div></div>
+  </div>
+  <div class="owe-total"><div><div class="muted small">ลูกค้าค้างจ่ายทั้งหมด</div><div class="val num">${money(oweTotal)}</div></div>
+    <div class="muted small">${owing.length} งาน</div></div>
+  ${state.readOnly?"":`<div class="actions">
+    <button class="btn primary" data-act="newJob">+ เปิดงานใหม่</button>
+    <button class="btn" data-act="newExpense">+ รายจ่ายร้าน</button></div>`}
+  <div class="section-title"><h2>งานที่กำลังทำ</h2><span class="muted small">เรียงตามวันส่ง</span></div>
+  <div class="list">${active.length?active.slice(0,6).map(jobCard).join(""):emptyBox("ยังไม่มีงาน กด “เปิดงานใหม่” เมื่อรับงานจากลูกค้า แล้วบันทึกมัดจำได้ในขั้นตอนเดียว")}</div>
+  ${active.length>6?`<button class="btn sm" data-act="tab" data-tab="jobs">ดูทั้งหมด ${active.length} งาน</button>`:""}`;
+}
+
+function viewJobs(){
+  const f=state.jobFilter,q=state.q.trim().toLowerCase();
+  let list=jobsArr();
+  if(f==="owe")list=list.filter(j=>remainOf(j)>0);
+  if(f==="active")list=list.filter(j=>j.status!=="done");
+  if(q)list=list.filter(j=>[j.customer,j.phone,j.title,j.type,j.note].join(" ").toLowerCase().includes(q));
+  list.sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
+  const chip=(k,t)=>`<button class="chip" data-act="filter" data-f="${k}" aria-pressed="${f===k}">${t}</button>`;
+  return `
+  ${banner()}
+  <div class="section-title"><h2>งานทั้งหมด</h2>${state.readOnly?"":`<button class="btn sm primary" data-act="newJob">+ เปิดงานใหม่</button>`}</div>
+  <div class="chips">${chip("owe","ค้างชำระ")}${chip("active","กำลังทำ")}${chip("all","ทั้งหมด")}</div>
+  <input id="search" type="search" placeholder="ค้นหาชื่อลูกค้า เบอร์ หรือชื่องาน" value="${esc(state.q)}">
+  <div class="list">${list.length?list.map(jobCard).join(""):emptyBox(jobsArr().length?"ไม่มีงานที่ตรงกับตัวกรองนี้":"ยังไม่มีงาน เปิดงานแรกได้เลย",`<button class="btn primary" data-act="newJob">+ เปิดงานใหม่</button>`)}</div>`;
+}
+
+function viewExpenses(){
+  const m=monthNumbers(state.month);
+  const list=[...m.exps].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  return `
+  ${banner()}
+  <div class="section-title"><h2>รายจ่ายร้าน ${thMonth(state.month)}</h2>${state.readOnly?"":`<button class="btn sm primary" data-act="newExpense">+ เพิ่ม</button>`}</div>
+  <p class="muted small" style="margin:0">ค่าใช้จ่ายที่ไม่ผูกกับงานใดงานหนึ่ง เช่น ค่าเช่า ค่าไฟ เงินเดือน ส่วนค่าวัสดุของแต่ละงานให้บันทึกในหน้างานนั้น</p>
+  ${list.length?`<div class="panel"><div class="rows">${list.map(x=>`
+    <div class="row"><div class="l"><div>${esc(x.category)}${x.note?` · <span class="muted">${esc(x.note)}</span>`:""}</div><div class="muted small">${thDate(x.date)}</div></div>
+    <div class="r"><span class="num">${money(x.amount)}</span>${state.readOnly?"":`<button class="x" data-act="delExpense" data-id="${esc(x.id)}" aria-label="ลบ">ลบ</button>`}</div></div>`).join("")}
+    <div class="row"><div class="l" style="font-weight:600">รวม</div><div class="r num" style="font-weight:600">${money(m.shop)}</div></div></div></div>`
+  :emptyBox("เดือนนี้ยังไม่มีรายจ่ายร้าน",`<button class="btn primary" data-act="newExpense">+ เพิ่มรายจ่าย</button>`)}`;
+}
+
+function viewSummary(){
+  const ym=state.month,m=monthNumbers(ym);
+  const months=[...Array(6)].map((_,i)=>shiftMonth(ym,i-5));
+  const series=months.map(k=>({k,...monthNumbers(k)}));
+  const max=Math.max(1,...series.map(s=>Math.max(s.income,s.out)));
+  const byCat={};m.exps.forEach(x=>byCat[x.category]=(byCat[x.category]||0)+(Number(x.amount)||0));
+  const jobsThis=jobsArr().filter(j=>(j.createdAt||"").startsWith(ym)).sort((a,b)=>(a.createdAt||"").localeCompare(b.createdAt||""));
+  return `
+  <div class="section-title"><h2>สรุป ${thMonth(ym)}</h2></div>
+  <div class="panel tablewrap"><table class="num">
+    <tr><td>เงินรับจากลูกค้า</td><td class="r good">${money(m.income)}</td></tr>
+    <tr><td>ต้นทุนวัสดุ / ค่าแรงของงาน</td><td class="r">−${money(m.jobCost)}</td></tr>
+    ${Object.entries(byCat).map(([c,v])=>`<tr><td>${esc(c)}</td><td class="r">−${money(v)}</td></tr>`).join("")}
+    ${Object.keys(byCat).length?"":`<tr><td>รายจ่ายร้าน</td><td class="r">−${money(0)}</td></tr>`}
+    <tr class="total"><td>กำไรเดือนนี้</td><td class="r ${m.profit<0?"bad":"good"}">${money(m.profit)}</td></tr>
+  </table></div>
+  <div class="panel">
+    <div class="subhead"><span>6 เดือนล่าสุด</span><span class="legend"><span><i style="background:var(--good)"></i>รับ</span><span><i style="background:var(--bad);opacity:.75"></i>จ่าย</span></span></div>
+    <div class="bars">${series.map(s=>`<div class="bar ${s.k===ym?"sel":""}" title="${thMonth(s.k)} รับ ${money(s.income)} จ่าย ${money(s.out)}">
+      <div class="pair"><div class="in" style="height:${s.income/max*100}%"></div><div class="out" style="height:${s.out/max*100}%"></div></div>
+      <div class="m">${thMonth(s.k,1)}</div></div>`).join("")}</div>
+  </div>
+  <div class="section-title"><h2>กำไรต่องาน (งานที่เปิดเดือนนี้)</h2></div>
+  ${jobsThis.length?`<div class="panel tablewrap"><table class="num">
+    <tr><th>งาน</th><th class="r">ราคา</th><th class="r">ต้นทุน</th><th class="r">กำไร</th></tr>
+    ${jobsThis.map(j=>{const p=(Number(j.price)||0)-costOf(j);return `<tr><td><a href="#" data-act="openJob" data-id="${esc(j.id)}" style="color:var(--accent)">${esc(j.customer)}</a><div class="muted small">${esc(j.title||j.type||"")}</div></td>
+      <td class="r">${money(j.price)}</td><td class="r">${money(costOf(j))}</td><td class="r ${p<0?"bad":""}">${money(p)}</td></tr>`}).join("")}
+  </table></div>`:emptyBox("เดือนนี้ยังไม่ได้เปิดงานใหม่")}`;
+}
+
+function banner(){
+  if(!state.live)return `<div class="banner">เชื่อมต่อฐานข้อมูลไม่ได้ในตอนนี้ ตรวจสอบอินเทอร์เน็ต แล้วดึงหน้าลงเพื่อโหลดใหม่</div>`;
+  if(state.readOnly)return `<div class="banner">บัญชีนี้ดูข้อมูลได้อย่างเดียว</div>`;
+  return "";
+}
+
+function loginView(msg){
+  return `<form class="login" id="loginForm">
+    <h2>เข้าสู่ระบบ</h2>
+    <p class="muted small" style="margin:0">ข้อมูลของร้านเปิดดูได้เฉพาะผู้ที่ได้รับอนุญาต</p>
+    <label>อีเมล<input id="l_email" type="email" autocomplete="username" required></label>
+    <label>รหัสผ่าน<input id="l_pw" type="password" autocomplete="current-password" required></label>
+    ${msg?`<div class="banner" style="background:var(--bad-bg);color:var(--bad)">${esc(msg)}</div>`:""}
+    <button class="btn primary" type="submit">เข้าสู่ระบบ</button></form>`;
+}
+
+function render(){
+  const authed=!!state.session;
+  $("#logoutBtn").hidden=!authed;
+  document.querySelector("nav.tabs").hidden=!authed;
+  if(!authed){
+    $("#monthbar").querySelectorAll("[data-act=month],#monthLabel").forEach(e=>e.hidden=true);
+    if(!$("#loginForm"))$("#view").innerHTML=state.booting?"":loginView();
+    return;
+  }
+  $("#monthbar").querySelectorAll("[data-act=month],#monthLabel").forEach(e=>e.hidden=false);
+  $("#monthLabel").textContent=thMonth(state.month);
+  document.querySelectorAll("#monthbar [data-act=month],#monthLabel").forEach(e=>e.hidden=state.tab==="jobs");
+  document.querySelectorAll("nav.tabs button").forEach(b=>{if(b.dataset.tab===state.tab)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+  const focusSearch=document.activeElement&&document.activeElement.id==="search";
+  const pos=focusSearch?document.activeElement.selectionStart:0;
+  $("#view").innerHTML=({home:viewHome,jobs:viewJobs,expenses:viewExpenses,summary:viewSummary})[state.tab]();
+  if(focusSearch){const s=$("#search");s.focus();s.setSelectionRange(pos,pos)}
+  if(state.openJob&&$("#dlg").open&&$("#dlg").dataset.kind==="job"){
+    if(state.jobs[state.openJob])renderJobDialog();else closeDlg();
+  }
+}
+
+// ---------- dialogs ----------
+function openDlg(kind,html){const d=$("#dlg");d.dataset.kind=kind;$("#dlgInner").innerHTML=html;if(!d.open)d.showModal()}
+function closeDlg(){const d=$("#dlg");if(d.open)d.close();state.openJob=null}
+$("#dlg").addEventListener("close",()=>{state.openJob=null});
+$("#dlg").addEventListener("click",e=>{if(e.target===$("#dlg"))closeDlg()});
+const head=t=>`<div class="dlg-head"><h3>${t}</h3><button class="iconbtn" data-act="close" aria-label="ปิด">✕</button></div>`;
+const opts=(arr,sel)=>arr.map(o=>`<option ${o===sel?"selected":""}>${esc(o)}</option>`).join("");
+
+function jobForm(j){
+  const isNew=!j;j=j||{};
+  openDlg("jobform",`${head(isNew?"เปิดงานใหม่":"แก้ไขงาน")}
+  <form class="dlg-body form" id="jobForm">
+    <label>ชื่อลูกค้า / ร้าน *<input id="f_customer" required value="${esc(j.customer)}" autocomplete="off"></label>
+    <div class="grid2">
+      <label>เบอร์โทร<input id="f_phone" inputmode="tel" value="${esc(j.phone)}"></label>
+      <label>ชนิดป้าย<select id="f_type">${opts(SIGN_TYPES,j.type||SIGN_TYPES[0])}</select></label>
+    </div>
+    <label>รายละเอียดงาน<input id="f_title" placeholder="เช่น ไวนิลหน้าร้าน 1×3 ม. พร้อมโครงเหล็ก" value="${esc(j.title)}"></label>
+    <div class="grid2">
+      <label>ราคาตกลง (บาท) *<input id="f_price" required inputmode="decimal" value="${esc(j.price??"")}"></label>
+      <label>วันส่งงาน<input id="f_due" type="date" value="${esc(j.dueDate||"")}"></label>
+    </div>
+    ${isNew?`<div class="grid2">
+      <label>มัดจำที่รับวันนี้ (บาท)<input id="f_dep" inputmode="decimal" placeholder="0"></label>
+      <label>รับทาง<select id="f_depm">${opts(PAY_METHODS)}</select></label></div>`:""}
+    <label>หมายเหตุ<textarea id="f_note">${esc(j.note)}</textarea></label>
+    <button class="btn primary" type="submit">${isNew?"บันทึกงาน":"บันทึกการแก้ไข"}</button>
+  </form>`);
+  $("#jobForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const price=parseFloat($("#f_price").value.replace(/,/g,""));
+    if(!$("#f_customer").value.trim()||!(price>=0)){toast("ใส่ชื่อลูกค้าและราคาให้ครบ");return}
+    const job=isNew?{id:newId("j"),createdAt:localISO(),status:"active",payments:[],costs:[]}:{...j,payments:[...(j.payments||[])],costs:[...(j.costs||[])]};
+    Object.assign(job,{customer:$("#f_customer").value.trim(),phone:$("#f_phone").value.trim(),type:$("#f_type").value,title:$("#f_title").value.trim(),price,dueDate:$("#f_due").value,note:$("#f_note").value.trim()});
+    if(isNew){const dep=parseFloat(($("#f_dep").value||"").replace(/,/g,""));if(dep>0)job.payments.push({id:newId("p"),date:localISO(),amount:dep,method:$("#f_depm").value,note:"มัดจำ"})}
+    saveJob(job);toast(isNew?"เปิดงานแล้ว":"บันทึกแล้ว");
+    state.openJob=job.id;renderJobDialog();
+  });
+  setTimeout(()=>$("#f_customer").focus(),30);
+}
+
+function renderJobDialog(){
+  const j=state.jobs[state.openJob];if(!j)return;
+  const paid=paidOf(j),cost=costOf(j),rem=remainOf(j),profit=(Number(j.price)||0)-cost;
+  const ro=state.readOnly;
+  const pays=[...(j.payments||[])].sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  const costs=[...(j.costs||[])].sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  const focusId=$("#dlg").contains(document.activeElement)?document.activeElement.id:"";
+  const prev={pa:$("#p_amt")?.value,pd:$("#p_date")?.value,pm:$("#p_m")?.value,ci:$("#c_item")?.value,ca:$("#c_amt")?.value};
+  openDlg("job",`${head(esc(j.customer))}
+  <div class="dlg-body">
+    <div class="muted small">${esc(j.type||"")}${j.title?" · "+esc(j.title):""}${j.phone?` · โทร <span style="user-select:all">${esc(j.phone)}</span>`:""}${j.dueDate?` · ส่ง ${thDate(j.dueDate)}`:""}${j.note?`<br>${esc(j.note)}`:""}</div>
+    <div class="stats num">
+      <div class="stat"><div class="label">ราคา</div><div class="val">${money(j.price)}</div></div>
+      <div class="stat"><div class="label">รับแล้ว</div><div class="val good">${money(paid)}</div></div>
+      <div class="stat"><div class="label">ค้างจ่าย</div><div class="val ${rem>0?"bad":""}">${money(rem)}</div></div>
+      <div class="stat"><div class="label">ต้นทุน</div><div class="val">${money(cost)}</div></div>
+      <div class="stat"><div class="label">กำไรงานนี้</div><div class="val ${profit<0?"bad":""}">${money(profit)}</div></div>
+      <div class="stat"><div class="label">สถานะ</div><div class="val">${j.status==="done"?"ปิดงานแล้ว":"กำลังทำ"}</div></div>
+    </div>
+
+    <div>
+      <div class="subhead"><span>รับเงินจากลูกค้า</span><span class="muted small num">${money(paid)}</span></div>
+      <div class="rows">${pays.length?pays.map(p=>`<div class="row"><div class="l">${thDate(p.date)} · ${esc(p.method||"")}${p.note?` · <span class="muted">${esc(p.note)}</span>`:""}</div>
+        <div class="r"><span class="num">${money(p.amount)}</span>${ro?"":`<button class="x" data-act="delPay" data-id="${esc(p.id)}">ลบ</button>`}</div></div>`).join(""):`<div class="muted small" style="padding:6px 0">ยังไม่ได้รับเงิน</div>`}</div>
+      ${ro?"":`<form class="inline-add" id="payForm" style="margin-top:8px">
+        <label>จำนวน (บาท)<input id="p_amt" inputmode="decimal" placeholder="${rem>0?Math.round(rem):""}"></label>
+        <label>วันที่<input id="p_date" type="date" value="${localISO()}"></label>
+        <label>ทาง<select id="p_m">${opts(PAY_METHODS)}</select></label>
+        <button class="btn primary" type="submit" style="grid-column:1/-1">+ รับเงิน</button></form>`}
+    </div>
+
+    <div>
+      <div class="subhead"><span>ต้นทุนงานนี้</span><span class="muted small num">${money(cost)}</span></div>
+      <div class="rows">${costs.length?costs.map(c=>`<div class="row"><div class="l">${esc(c.item)} <span class="muted small">${thDate(c.date)}</span></div>
+        <div class="r"><span class="num">${money(c.amount)}</span>${ro?"":`<button class="x" data-act="delCost" data-id="${esc(c.id)}">ลบ</button>`}</div></div>`).join(""):`<div class="muted small" style="padding:6px 0">ยังไม่มีต้นทุน</div>`}</div>
+      ${ro?"":`<div class="chips" style="margin-top:8px">${COST_ITEMS.map(c=>`<button class="chip" type="button" data-act="costChip" data-v="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+      <form class="inline-add three" id="costForm" style="margin-top:8px">
+        <label>รายการ<input id="c_item" placeholder="เช่น ไวนิล 3 ตร.ม."></label>
+        <label>จำนวน (บาท)<input id="c_amt" inputmode="decimal"></label>
+        <button class="btn" type="submit">+ เพิ่มต้นทุน</button></form>`}
+    </div>
+
+    ${ro?"":`<div class="actions">
+      <button class="btn" data-act="editJob">แก้ไขงาน</button>
+      <button class="btn" data-act="toggleDone">${j.status==="done"?"เปิดงานอีกครั้ง":"ส่งงานแล้ว ปิดงาน"}</button>
+      <button class="btn danger" data-act="delJob" style="grid-column:1/-1">ลบงานนี้</button></div>`}
+  </div>`);
+  // keep anything half-typed across live refreshes
+  if(prev.pa)$("#p_amt").value=prev.pa; if(prev.pd)$("#p_date").value=prev.pd; if(prev.pm)$("#p_m").value=prev.pm;
+  if(prev.ci)$("#c_item").value=prev.ci; if(prev.ca)$("#c_amt").value=prev.ca;
+  if(focusId&&document.getElementById(focusId))document.getElementById(focusId).focus();
+  $("#payForm")?.addEventListener("submit",e=>{
+    e.preventDefault();
+    const amt=parseFloat(($("#p_amt").value||"").replace(/,/g,""));
+    if(!(amt>0)){toast("ใส่จำนวนเงินก่อน");return}
+    const nj={...j,payments:[...(j.payments||[]),{id:newId("p"),date:$("#p_date").value||localISO(),amount:amt,method:$("#p_m").value,note:""}]};
+    $("#p_amt").value="";saveJob(nj);toast("รับเงิน "+money(amt)+" แล้ว");
+  });
+  $("#costForm")?.addEventListener("submit",e=>{
+    e.preventDefault();
+    const amt=parseFloat(($("#c_amt").value||"").replace(/,/g,""));
+    const item=$("#c_item").value.trim();
+    if(!item||!(amt>0)){toast("ใส่รายการและจำนวนเงิน");return}
+    const nj={...j,costs:[...(j.costs||[]),{id:newId("c"),date:localISO(),item,amount:amt}]};
+    $("#c_item").value="";$("#c_amt").value="";saveJob(nj);toast("เพิ่มต้นทุนแล้ว");
+  });
+}
+
+function expenseForm(){
+  openDlg("exp",`${head("เพิ่มรายจ่ายร้าน")}
+  <form class="dlg-body form" id="expForm">
+    <label>หมวด<select id="e_cat">${opts(EXP_CATS)}</select></label>
+    <div class="grid2">
+      <label>จำนวน (บาท) *<input id="e_amt" inputmode="decimal" required></label>
+      <label>วันที่<input id="e_date" type="date" value="${state.month===localISO().slice(0,7)?localISO():state.month+"-01"}"></label>
+    </div>
+    <label>หมายเหตุ<input id="e_note" placeholder="เช่น ค่าไฟเดือนตุลา"></label>
+    <button class="btn primary" type="submit">บันทึกรายจ่าย</button>
+  </form>`);
+  $("#expForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const amt=parseFloat(($("#e_amt").value||"").replace(/,/g,""));
+    if(!(amt>0)){toast("ใส่จำนวนเงินก่อน");return}
+    saveExpense({id:newId("e"),date:$("#e_date").value||localISO(),category:$("#e_cat").value,amount:amt,note:$("#e_note").value.trim()});
+    closeDlg();toast("บันทึกรายจ่ายแล้ว");
+  });
+  setTimeout(()=>$("#e_amt").focus(),30);
+}
+
+// two-tap delete instead of confirm()
+function armed(btn){
+  if(btn.classList.contains("armed"))return true;
+  btn.classList.add("armed");const t=btn.textContent;btn.dataset.t=t;btn.textContent="กดอีกครั้งเพื่อลบ";
+  setTimeout(()=>{if(btn.isConnected){btn.classList.remove("armed");btn.textContent=btn.dataset.t}},3000);
+  return false;
+}
+
+// ---------- events ----------
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const a=b.dataset.act;
+  if(a==="tab"){state.tab=b.dataset.tab;render();scrollTo(0,0)}
+  else if(a==="month"){state.month=shiftMonth(state.month,+b.dataset.d);render()}
+  else if(a==="filter"){state.jobFilter=b.dataset.f;render()}
+  else if(a==="newJob")jobForm();
+  else if(a==="newExpense")expenseForm();
+  else if(a==="openJob"){e.preventDefault();state.openJob=b.dataset.id;renderJobDialog()}
+  else if(a==="close")closeDlg();
+  else if(a==="editJob")jobForm(state.jobs[state.openJob]);
+  else if(a==="toggleDone"){const j=state.jobs[state.openJob];saveJob({...j,status:j.status==="done"?"active":"done"});toast(j.status==="done"?"เปิดงานอีกครั้งแล้ว":"ปิดงานแล้ว")}
+  else if(a==="delJob"){if(armed(b)){const id=state.openJob;closeDlg();deleteJob(id);toast("ลบงานแล้ว")}}
+  else if(a==="delPay"){if(armed(b)){const j=state.jobs[state.openJob];saveJob({...j,payments:(j.payments||[]).filter(p=>p.id!==b.dataset.id)})}}
+  else if(a==="delCost"){if(armed(b)){const j=state.jobs[state.openJob];saveJob({...j,costs:(j.costs||[]).filter(c=>c.id!==b.dataset.id)})}}
+  else if(a==="delExpense"){if(armed(b))deleteExpense(b.dataset.id)}
+  else if(a==="logout"){sb.auth.signOut()}
+  else if(a==="costChip"){const i=$("#c_item");i.value=b.dataset.v+" ";i.focus()}
+});
+document.addEventListener("submit",async e=>{
+  if(e.target.id!=="loginForm")return;
+  e.preventDefault();
+  const btn=e.target.querySelector("button");btn.disabled=true;
+  const{error}=await sb.auth.signInWithPassword({email:$("#l_email").value.trim(),password:$("#l_pw").value});
+  if(error){$("#view").innerHTML=loginView("อีเมลหรือรหัสผ่านไม่ถูกต้อง")}
+});
+document.addEventListener("input",e=>{if(e.target.id==="search"){state.q=e.target.value;render()}});
+
+// ---------- boot ----------
+render();
+(async()=>{
+  const cfg=window.APP_CONFIG||{};
+  if(!window.supabase||!cfg.supabaseUrl||/ใส่/.test(cfg.supabaseUrl)){
+    state.booting=false;$("#view").innerHTML=`<div class="banner" style="margin-top:24px">ยังไม่ได้ตั้งค่าการเชื่อมต่อฐานข้อมูล (config.js)</div>`;return;
+  }
+  sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseKey);
+  const{data}=await sb.auth.getSession();
+  state.session=data.session;state.booting=false;
+  sb.auth.onAuthStateChange((_ev,session)=>{
+    const was=!!state.session;state.session=session;
+    if(!session){state.jobs={};state.expenses={};state.live=false;state.openJob=null;closeDlg();$("#view").innerHTML=loginView()}
+    else if(!was){loadAll()}
+    render();
+  });
+  render();
+  if(state.session)loadAll();
+  // keep devices in sync: refresh when the tab is shown again and every 20 s
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)loadAll()});
+  setInterval(()=>{if(!document.hidden&&!$("#dlg").open)loadAll()},20000);
+})();
+</script>
+</body>
+</html>
